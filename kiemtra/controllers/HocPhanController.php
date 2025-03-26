@@ -124,13 +124,36 @@ class HocPhanController {
 
         // Lưu trạng thái đăng ký
         if ($this->hocPhanModel->luuDangKy($MaSV)) {
-            $_SESSION['success'] = "Lưu đăng ký học phần thành công! Tổng số tín chỉ: " . $tongTinChi;
+            // Get registration details
+            $hocPhans = $this->hocPhanModel->getDangKyByMaSV($MaSV);
+            $_SESSION['success'] = "Lưu đăng ký học phần thành công!";
+            $_SESSION['registration_info'] = [
+                'tongTinChi' => $tongTinChi,
+                'ngayDK' => date('d/m/Y'),
+                'hocPhans' => $hocPhans->fetchAll(PDO::FETCH_ASSOC)
+            ];
+            header('Location: index.php?controller=hocphan&action=thongBaoDangKy');
+            exit();
         } else {
             $_SESSION['error'] = "Lưu đăng ký học phần thất bại!";
+            header('Location: index.php?controller=hocphan&action=danhSachDangKy');
+            exit();
         }
+    }
+
+    public function thongBaoDangKy() {
+        if (!isset($_SESSION['MaSV']) || !isset($_SESSION['registration_info'])) {
+            header('Location: index.php?controller=hocphan&action=danhSachDangKy');
+            exit();
+        }
+
+        $registrationInfo = $_SESSION['registration_info'];
+        $MaSV = $_SESSION['MaSV'];
         
-        header('Location: index.php?controller=hocphan&action=danhSachDangKy');
-        exit();
+        require_once 'views/hocphan/thong_bao_dang_ky.php';
+        
+        // Clear the registration info from session after displaying
+        unset($_SESSION['registration_info']);
     }
 }
 ?> 
